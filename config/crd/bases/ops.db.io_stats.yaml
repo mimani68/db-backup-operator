@@ -35,9 +35,11 @@ spec:
           spec:
             description: StatsSpec defines the desired state of Stats
             properties:
-              foo:
-                description: Foo is an example field of Stats. Edit stats_types.go
-                  to remove/update
+              bbConnectionUrl:
+                description: DbConnectionUrl is point the address of each target dbs
+                type: string
+              type:
+                description: Type is include string like "mysql", "postgresql"
                 type: string
             type: object
           status:

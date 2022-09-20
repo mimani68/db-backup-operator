@@ -3,4 +3,6 @@ kind: Backup
 metadata:
   name: backup-sample
 spec:
-  # TODO(user): Add fields here
+  dbConnectionUrl: tcp://admin:uD0g7g3I3Md2@svc-7766467.mysql.io/sampledb
+  type: mysql
+  cronJobOfBackup: "0 0 * * *"

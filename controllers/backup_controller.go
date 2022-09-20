@@ -18,18 +18,21 @@ package controllers
 
 import (
 	"context"
+	"encoding/json"
 
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/log"
 
+	"github.com/go-logr/logr"
 	opsv1alpha1 "github.com/mimani68/db-operator/api/v1alpha1"
 )
 
 // BackupReconciler reconciles a Backup object
 type BackupReconciler struct {
 	client.Client
+	Log    logr.Logger
 	Scheme *runtime.Scheme
 }
 
@@ -47,9 +50,77 @@ type BackupReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.12.2/pkg/reconcile
 func (r *BackupReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
+	dbBackup := &opsv1alpha1.Backup{}
+	err := r.Get(ctx, req.NamespacedName, dbBackup)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			r.Log.Info("dbBackup resource not found. Ignoring since object must be deleted")
+			return ctrl.Result{}, nil
+		}
+		r.Log.Error(err, "Failed to get dbBackup")
+		return ctrl.Result{}, err
+	} else {
+		r.Log.Info("dbBackup resource found.")
+		value, err := json.Marshal(dbBackup)
+		if err == nil {
+			r.Log.Info(string(value))
+		}
+	}
 
-	// TODO(user): your logic here
+	// // Check if the deployment already exists, if not create a new one
+	// found := &appsv1.Deployment{}
+	// err = r.Get(ctx, req.NamespacedName, found)
+	// if err != nil && errors.IsNotFound(err) {
+	// 	// Define a new deployment
+	// 	dep := r.deploymentFordbBackup(dbBackup)
+	// 	log.Info("Creating a new Deployment", "Deployment.Namespace", dep.Namespace, "Deployment.Name", dep.Name)
+	// 	err = r.Create(ctx, dep)
+	// 	if err != nil {
+	// 		log.Error(err, "Failed to create new Deployment", "Deployment.Namespace", dep.Namespace, "Deployment.Name", dep.Name)
+	// 		return ctrl.Result{}, err
+	// 	}
+	// 	// Deployment created successfully - return and requeue
+	// 	return ctrl.Result{Requeue: true}, nil
+	// } else if err != nil {
+	// 	log.Error(err, "Failed to get Deployment")
+	// 	return ctrl.Result{}, err
+	// }
+
+	// // Ensure the deployment size is the same as the spec
+	// size := dbBackup.Spec.DbUrl
+	// if *found.Spec.Replicas != size {
+	// 	found.Spec.Replicas = &size
+	// 	err = r.Update(ctx, found)
+	// 	if err != nil {
+	// 		log.Error(err, "Failed to update Deployment", "Deployment.Namespace", found.Namespace, "Deployment.Name", found.Name)
+	// 		return ctrl.Result{}, err
+	// 	}
+	// 	// Spec updated - return and requeue
+	// 	return ctrl.Result{Requeue: true}, nil
+	// }
+
+	// // Update the dbBackup status with the pod names
+	// // List the pods for this dbBackup's deployment
+	// podList := &corev1.PodList{}
+	// listOpts := []client.ListOption{
+	// 	client.InNamespace(dbBackup.Namespace),
+	// 	client.MatchingLabels(labelsFordbBackup(dbBackup.Name)),
+	// }
+	// if err = r.List(ctx, podList, listOpts...); err != nil {
+	// 	log.Error(err, "Failed to list pods", "dbBackup.Namespace", dbBackup.Namespace, "dbBackup.Name", dbBackup.Name)
+	// 	return ctrl.Result{}, err
+	// }
+	// podNames := getPodNames(podList.Items)
+
+	// // Update status.Nodes if needed
+	// if !reflect.DeepEqual(podNames, dbBackup.Status.Nodes) {
+	// 	dbBackup.Status.Nodes = podNames
+	// 	err := r.Status().Update(ctx, dbBackup)
+	// 	if err != nil {
+	// 		log.Error(err, "Failed to update dbBackup status")
+	// 		return ctrl.Result{}, err
+	// 	}
+	// }
 
 	return ctrl.Result{}, nil
 }

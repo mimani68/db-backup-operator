@@ -26,7 +26,7 @@ import (
 // BackupSpec defines the desired state of Backup
 type BackupSpec struct {
 	// DbConnectionUrl is point the address of each target dbs
-	DbConnectionUrl string `json:"bbConnectionUrl,omitempty"`
+	DbConnectionUrl string `json:"dbConnectionUrl,omitempty"`
 
 	// Type is include string like "mysql", "postgresql"
 	Type string `json:"type,omitempty"`
