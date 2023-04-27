@@ -24,7 +24,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	opsv1alpha1 "github.com/mimani68/db-operator/api/v1alpha1"
+	opsv1alpha1 "github.com/mimani68/db-backup-operator/api/v1alpha1"
 )
 
 // RestoreReconciler reconciles a Restore object

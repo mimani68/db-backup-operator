@@ -5,7 +5,7 @@ plugins:
   manifests.sdk.operatorframework.io/v2: {}
   scorecard.sdk.operatorframework.io/v2: {}
 projectName: db-operator
-repo: github.com/mimani68/db-operator
+repo: github.com/mimani68/db-backup-operator
 resources:
 - api:
     crdVersion: v1
@@ -14,7 +14,7 @@ resources:
   domain: db.io
   group: ops
   kind: Backup
-  path: github.com/mimani68/db-operator/api/v1alpha1
+  path: github.com/mimani68/db-backup-operator/api/v1alpha1
   version: v1alpha1
 - api:
     crdVersion: v1
@@ -23,7 +23,7 @@ resources:
   domain: db.io
   group: ops
   kind: Restore
-  path: github.com/mimani68/db-operator/api/v1alpha1
+  path: github.com/mimani68/db-backup-operator/api/v1alpha1
   version: v1alpha1
 - api:
     crdVersion: v1
@@ -32,6 +32,6 @@ resources:
   domain: db.io
   group: ops
   kind: Stats
-  path: github.com/mimani68/db-operator/api/v1alpha1
+  path: github.com/mimani68/db-backup-operator/api/v1alpha1
   version: v1alpha1
 version: "3"

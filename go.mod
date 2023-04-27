@@ -1,4 +1,4 @@
-module github.com/mimani68/db-operator
+module github.com/mimani68/db-backup-operator
 
 go 1.18
 

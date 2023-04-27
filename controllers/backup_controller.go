@@ -26,7 +26,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/go-logr/logr"
-	opsv1alpha1 "github.com/mimani68/db-operator/api/v1alpha1"
+	opsv1alpha1 "github.com/mimani68/db-backup-operator/api/v1alpha1"
 )
 
 // BackupReconciler reconciles a Backup object
