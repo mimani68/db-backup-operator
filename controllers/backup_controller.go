@@ -26,7 +26,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/go-logr/logr"
-	opsv1alpha1 "github.com/mimani68/db-backup-operator/api/v1alpha1"
+	ops1alpha1 "github.com/mimani68/db-backup-operator/api/v1alpha1"
 )
 
 // BackupReconciler reconciles a Backup object
@@ -50,7 +50,7 @@ type BackupReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.12.2/pkg/reconcile
 func (r *BackupReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	dbBackup := &opsv1alpha1.Backup{}
+	dbBackup := &ops1alpha1.Backup{}
 	err := r.Get(ctx, req.NamespacedName, dbBackup)
 	if err != nil {
 		if errors.IsNotFound(err) {
@@ -128,6 +128,6 @@ func (r *BackupReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 // SetupWithManager sets up the controller with the Manager.
 func (r *BackupReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&opsv1alpha1.Backup{}).
+		For(&ops1alpha1.Backup{}).
 		Complete(r)
 }

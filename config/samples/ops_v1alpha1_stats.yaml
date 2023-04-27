@@ -1,6 +1,0 @@
-apiVersion: ops.db.io/v1alpha1
-kind: Stats
-metadata:
-  name: stats-sample
-spec:
-  # TODO(user): Add fields here
