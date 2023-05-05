@@ -3,8 +3,6 @@
 # It should be run by config/default
 resources:
 - bases/ops.db.io_backups.yaml
-- bases/ops.db.io_restores.yaml
-- bases/ops.db.io_stats.yaml
 #+kubebuilder:scaffold:crdkustomizeresource
 
 patchesStrategicMerge:

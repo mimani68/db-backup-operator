@@ -1,6 +1,0 @@
-## Append samples you want in your CSV to this file as resources ##
-resources:
-- ops_v1alpha1_backup.yaml
-- ops_v1alpha1_restore.yaml
-- ops_v1alpha1_stats.yaml
-#+kubebuilder:scaffold:manifestskustomizesamples

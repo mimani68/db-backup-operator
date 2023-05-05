@@ -27,6 +27,7 @@ import (
 
 	"github.com/go-logr/logr"
 	ops1alpha1 "github.com/mimani68/db-backup-operator/api/v1alpha1"
+	"github.com/mimani68/db-backup-operator/internal/k8s"
 )
 
 // BackupReconciler reconciles a Backup object
@@ -67,60 +68,7 @@ func (r *BackupReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		}
 	}
 
-	// // Check if the deployment already exists, if not create a new one
-	// found := &appsv1.Deployment{}
-	// err = r.Get(ctx, req.NamespacedName, found)
-	// if err != nil && errors.IsNotFound(err) {
-	// 	// Define a new deployment
-	// 	dep := r.deploymentFordbBackup(dbBackup)
-	// 	log.Info("Creating a new Deployment", "Deployment.Namespace", dep.Namespace, "Deployment.Name", dep.Name)
-	// 	err = r.Create(ctx, dep)
-	// 	if err != nil {
-	// 		log.Error(err, "Failed to create new Deployment", "Deployment.Namespace", dep.Namespace, "Deployment.Name", dep.Name)
-	// 		return ctrl.Result{}, err
-	// 	}
-	// 	// Deployment created successfully - return and requeue
-	// 	return ctrl.Result{Requeue: true}, nil
-	// } else if err != nil {
-	// 	log.Error(err, "Failed to get Deployment")
-	// 	return ctrl.Result{}, err
-	// }
-
-	// // Ensure the deployment size is the same as the spec
-	// size := dbBackup.Spec.DbUrl
-	// if *found.Spec.Replicas != size {
-	// 	found.Spec.Replicas = &size
-	// 	err = r.Update(ctx, found)
-	// 	if err != nil {
-	// 		log.Error(err, "Failed to update Deployment", "Deployment.Namespace", found.Namespace, "Deployment.Name", found.Name)
-	// 		return ctrl.Result{}, err
-	// 	}
-	// 	// Spec updated - return and requeue
-	// 	return ctrl.Result{Requeue: true}, nil
-	// }
-
-	// // Update the dbBackup status with the pod names
-	// // List the pods for this dbBackup's deployment
-	// podList := &corev1.PodList{}
-	// listOpts := []client.ListOption{
-	// 	client.InNamespace(dbBackup.Namespace),
-	// 	client.MatchingLabels(labelsFordbBackup(dbBackup.Name)),
-	// }
-	// if err = r.List(ctx, podList, listOpts...); err != nil {
-	// 	log.Error(err, "Failed to list pods", "dbBackup.Namespace", dbBackup.Namespace, "dbBackup.Name", dbBackup.Name)
-	// 	return ctrl.Result{}, err
-	// }
-	// podNames := getPodNames(podList.Items)
-
-	// // Update status.Nodes if needed
-	// if !reflect.DeepEqual(podNames, dbBackup.Status.Nodes) {
-	// 	dbBackup.Status.Nodes = podNames
-	// 	err := r.Status().Update(ctx, dbBackup)
-	// 	if err != nil {
-	// 		log.Error(err, "Failed to update dbBackup status")
-	// 		return ctrl.Result{}, err
-	// 	}
-	// }
+	k8s.CreateDeployment(ctx, dbBackup.Spec.Type, dbBackup.Spec.DbConnectionUrl)
 
 	return ctrl.Result{}, nil
 }
