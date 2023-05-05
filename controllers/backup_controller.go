@@ -68,7 +68,7 @@ func (r *BackupReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		}
 	}
 
-	k8s.CreateDeployment()
+	k8s.CreateDeployment(ctx, dbBackup.Spec.Type, dbBackup.Spec.DbConnectionUrl)
 
 	return ctrl.Result{}, nil
 }

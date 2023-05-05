@@ -1,6 +1,9 @@
 package k8s
 
 import (
+	"context"
+	"fmt"
+
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -10,7 +13,7 @@ import (
 
 func int32Ptr(i int32) *int32 { return &i }
 
-func CreateDeployment() {
+func CreateDeployment(ctx context.Context, dbType, connectionAddress string) {
 	// Load Kubernetes configuration
 	config, err := clientcmd.BuildConfigFromFlags("", "/path/to/kubeconfig")
 	if err != nil {
@@ -37,34 +40,42 @@ func CreateDeployment() {
 		},
 	}
 
+	var backUpCommand string
+	switch dbType {
+	case "mysql":
+		backUpCommand = fmt.Sprintf("mysqldump %s | gzip > /backup/$(date +%Y-%m-%d-%T).sql.gz", connectionAddress)
+	case "postgres":
+		backUpCommand = fmt.Sprintf("pgdump %s | gzip > /backup/$(date +%Y-%m-%d-%T).sql.gz", connectionAddress)
+	}
+
 	// Define MySQL deployment
 	replicas := int32(1)
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "mysql-deployment",
+			Name: "backup-agent",
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: &replicas,
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
-					"app": "mysql",
+					"app": "backup-agent",
 				},
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{
-						"app": "mysql",
+						"app": "backup-agent",
 					},
 				},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{
 						{
-							Name:  "mysql",
+							Name:  "backup-agent",
 							Image: "mysql:latest",
 							Args: []string{
 								"sh",
 								"-c",
-								"mysqldump -u root -p123 user | gzip > /backup/$(date +%Y-%m-%d-%T).sql.gz",
+								backUpCommand,
 							},
 							VolumeMounts: []corev1.VolumeMount{
 								{
@@ -80,15 +91,13 @@ func CreateDeployment() {
 							Type:       corev1.SecretVolumeSource,
 							SecretName: "s3-secret",
 						},
-						{
-							*s3Volume,
-						},
+						*s3Volume,
 					},
 				},
 			},
 		},
 	}
-	_, err = clientset.AppsV1().Deployments("default").Create(deployment)
+	_, err = clientset.AppsV1().Deployments("default").Create(ctx, deployment, metav1.CreateOptions{})
 	if err != nil {
 		panic(err.Error())
 	}
@@ -104,7 +113,7 @@ func CreateDeployment() {
 		},
 		Type: corev1.SecretTypeOpaque,
 	}
-	_, err = clientset.CoreV1().Secrets("default").Create(secret)
+	_, err = clientset.CoreV1().Secrets("default").Create(ctx, secret, metav1.CreateOptions{})
 	if err != nil {
 		panic(err.Error())
 	}
