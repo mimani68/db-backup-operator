@@ -32,7 +32,7 @@ type BackupSpec struct {
 	Type string `json:"type,omitempty"`
 
 	// CronJobOfBackup is something like "0 0 * * *"
-	CronJobOfBackup string `json:"cronJobOfBackup,omitempty"`
+	// CronJobOfBackup string `json:"cronJobOfBackup,omitempty"`
 }
 
 // BackupStatus defines the observed state of Backup

@@ -1,8 +1,8 @@
 apiVersion: ops.db.io/v1alpha1
 kind: Backup
 metadata:
-  name: backup-sample
+  name: backup-sample2
 spec:
   dbConnectionUrl: tcp://admin:uD0g7g3I3Md2@svc-7766467.mysql.io/sampledb
   type: mysql
-  cronJobOfBackup: "0 0 * * *"
+  # cronJobOfBackup: "0 0 * * *"

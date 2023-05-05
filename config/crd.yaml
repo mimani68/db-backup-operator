@@ -41,9 +41,6 @@ spec:
           spec:
             description: BackupSpec defines the desired state of Backup
             properties:
-              cronJobOfBackup:
-                description: CronJobOfBackup is something like "0 0 * * *"
-                type: string
               dbConnectionUrl:
                 description: DbConnectionUrl is point the address of each target dbs
                 type: string
@@ -139,58 +136,6 @@ rules:
   - ops.db.io
   resources:
   - backups/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - ops.db.io
-  resources:
-  - restores
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - ops.db.io
-  resources:
-  - restores/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - ops.db.io
-  resources:
-  - restores/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - ops.db.io
-  resources:
-  - stats
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - ops.db.io
-  resources:
-  - stats/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - ops.db.io
-  resources:
-  - stats/status
   verbs:
   - get
   - patch
@@ -358,7 +303,7 @@ spec:
         - --leader-elect
         command:
         - /manager
-        image: mimani/db-controller:v0.0.1
+        image: controller:latest
         livenessProbe:
           httpGet:
             path: /healthz
