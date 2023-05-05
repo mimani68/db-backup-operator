@@ -28,6 +28,7 @@ import (
 	"github.com/go-logr/logr"
 	ops1alpha1 "github.com/mimani68/db-backup-operator/api/v1alpha1"
 	"github.com/mimani68/db-backup-operator/internal/k8s"
+	"github.com/mimani68/db-backup-operator/internal/utils"
 )
 
 // BackupReconciler reconciles a Backup object
@@ -43,11 +44,6 @@ type BackupReconciler struct {
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
-// TODO(user): Modify the Reconcile function to compare the state specified by
-// the Backup object against the actual cluster state, and then
-// perform operations to make the cluster state reflect the state specified by
-// the user.
-//
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.12.2/pkg/reconcile
 func (r *BackupReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
@@ -68,7 +64,20 @@ func (r *BackupReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		}
 	}
 
-	k8s.CreateDeployment(ctx, dbBackup.Spec.Type, dbBackup.Spec.DbConnectionUrl)
+	dbType, err := utils.FindKeyword(dbBackup.Spec.Type)
+	if err != nil {
+		r.Log.Info("Database type was not valid.")
+		return ctrl.Result{}, err
+	}
+
+	client, err := k8s.LoadConfig()
+	var nameSpace = "default"
+
+	deploymentError := k8s.CreateDeployment(ctx, client, dbType, dbBackup.Spec.DbConnectionUrl, nameSpace)
+	if deploymentError != nil {
+		r.Log.Info("Database type was not valid.")
+		return ctrl.Result{}, deploymentError
+	}
 
 	return ctrl.Result{}, nil
 }

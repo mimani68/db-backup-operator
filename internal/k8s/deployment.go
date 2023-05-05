@@ -3,48 +3,31 @@ package k8s
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/clientcmd"
 )
+
+var CLAIM_NAME = "s3-db-backup"
 
 func int32Ptr(i int32) *int32 { return &i }
 
-func CreateDeployment(ctx context.Context, dbType, connectionAddress string) {
-	// Load Kubernetes configuration
-	config, err := clientcmd.BuildConfigFromFlags("", "/path/to/kubeconfig")
-	if err != nil {
-		panic(err.Error())
-	}
-
-	//Create Kubernetes client
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		panic(err.Error())
-	}
-
-	// Define S3 volume
-	s3Volume := &corev1.Volume{
-		Name: "s3-volume",
-		VolumeSource: corev1.VolumeSource{
-			AWSS3: &corev1.AWSS3VolumeSource{
-				Bucket: "my-s3-bucket",
-				Prefix: "path/to/folder",
-				SecretRef: &corev1.SecretReference{
-					Name: "s3-secret",
-				},
-			},
-		},
+func CreateDeployment(ctx context.Context, clientset *kubernetes.Clientset, dbType, connectionAddress, nameSpace string) error {
+	// Define PVC
+	pvcObjectCreationError := CreatePVC(ctx, clientset, CLAIM_NAME, nameSpace)
+	if pvcObjectCreationError != nil {
+		panic(pvcObjectCreationError.Error())
 	}
 
 	var backUpCommand string
 	switch dbType {
-	case "mysql":
+	case strings.ToUpper("mysql"):
 		backUpCommand = fmt.Sprintf("mysqldump %s | gzip > /backup/$(date +%Y-%m-%d-%T).sql.gz", connectionAddress)
-	case "postgres":
+	case strings.ToUpper("postgresql"):
+	case strings.ToUpper("postgres"):
 		backUpCommand = fmt.Sprintf("pgdump %s | gzip > /backup/$(date +%Y-%m-%d-%T).sql.gz", connectionAddress)
 	}
 
@@ -79,44 +62,46 @@ func CreateDeployment(ctx context.Context, dbType, connectionAddress string) {
 							},
 							VolumeMounts: []corev1.VolumeMount{
 								{
-									Name:      "backup",
+									Name:      "backup-folder",
 									MountPath: "/backup",
 								},
 							},
 						},
 					},
 					Volumes: []corev1.Volume{
+						// {
+						// 	Name:       "backup",
+						// 	Type:       corev1.SecretVolumeSource,
+						// 	SecretName: "s3-secret",
+						// },
+						// *s3Volume,
 						{
-							Name:       "backup",
-							Type:       corev1.SecretVolumeSource,
-							SecretName: "s3-secret",
+							Name: "backup-folder",
+							VolumeSource: corev1.VolumeSource{
+								PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+									ClaimName: CLAIM_NAME,
+								},
+							},
 						},
-						*s3Volume,
 					},
 				},
 			},
 		},
 	}
-	_, err = clientset.AppsV1().Deployments("default").Create(ctx, deployment, metav1.CreateOptions{})
+	_, err := clientset.AppsV1().Deployments(nameSpace).Create(ctx, deployment, metav1.CreateOptions{})
 	if err != nil {
-		panic(err.Error())
+		return err
 	}
 
-	// Define S3 secret
-	secret := &corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "s3-secret",
-		},
-		StringData: map[string]string{
-			"access_key": "YOUR_S3_ACCESS_KEY",
-			"secret_key": "YOUR_S3_SECRET_KEY",
-		},
-		Type: corev1.SecretTypeOpaque,
-	}
-	_, err = clientset.CoreV1().Secrets("default").Create(ctx, secret, metav1.CreateOptions{})
-	if err != nil {
-		panic(err.Error())
-	}
+	// Create Secret
+	// secretData := map[string]string{
+	// 	"access_key": "YOUR_S3_ACCESS_KEY",
+	// 	"secret_key": "YOUR_S3_SECRET_KEY",
+	// }
+	// secretCreationError := CreateSecret(ctx, clientset, "s3-secret", nameSpace, secretData)
+	// if secretCreationError != nil {
+	// 	panic(secretCreationError.Error())
+	// }
 
 	// // Check if the deployment already exists, if not create a new one
 	// found := &appsv1.Deployment{}
@@ -172,4 +157,5 @@ func CreateDeployment(ctx context.Context, dbType, connectionAddress string) {
 	// 		return ctrl.Result{}, err
 	// 	}
 	// }
+	return nil
 }
